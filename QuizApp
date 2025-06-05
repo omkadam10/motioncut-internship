@@ -1,0 +1,112 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+class Question {
+    private String questionText;
+    private List<String> options;
+    public int correctOptionIndex;
+
+    public Question(String questionText, List<String> options, int correctOptionIndex) {
+        this.questionText = questionText;
+        this.options = options;
+        this.correctOptionIndex = correctOptionIndex;
+    }
+
+    public String getQuestionText() {
+        return questionText;
+    }
+
+    public List<String> getOptions() {
+        return options;
+    }
+
+    public boolean isCorrectAnswer(int selectedOptionIndex) {
+        return selectedOptionIndex == correctOptionIndex;
+    }
+}
+
+class Quiz {
+    private List<Question> questions;
+
+    public Quiz() {
+        this.questions = new ArrayList<>();
+    }
+
+    public void addQuestion(Question question) {
+        questions.add(question);
+    }
+
+    public void startQuiz() {
+        Scanner scanner = new Scanner(System.in);
+        int score = 0;
+
+        for (int i = 0; i < questions.size(); i++) {
+            Question question = questions.get(i);
+            System.out.println("Question " + (i + 1) + ": " + question.getQuestionText());
+            List<String> options = question.getOptions();
+            for (int j = 0; j < options.size(); j++) {
+                System.out.println((j + 1) + ". " + options.get(j));
+            }
+
+            int userAnswer = -1;
+            while (true) {
+                System.out.print("Your answer (1-" + options.size() + "): ");
+                String input = scanner.nextLine();
+                try {
+                    userAnswer = Integer.parseInt(input);
+                    if (userAnswer >= 1 && userAnswer <= options.size()) {
+                        break;
+                    } else {
+                        System.out.println("Please enter a valid option between 1 and " + options.size() + ".");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input. Please enter a number.");
+                }
+            }
+
+            if (question.isCorrectAnswer(userAnswer - 1)) {
+                System.out.println("Correct!");
+                score++;
+            } else {
+                System.out.println("Wrong! The correct answer was option " + (question.correctOptionIndex + 1) + ".");
+            }
+            System.out.println();
+        }
+
+        System.out.println("Quiz finished! Your score is: " + score + "/" + questions.size());
+        scanner.close();
+    }
+}
+
+public class QuizApp {
+    public static void main(String[] args) {
+        // Create a quiz
+        Quiz quiz = new Quiz();
+
+        // Add questions to the quiz
+        List<String> options1 = new ArrayList<>();
+        options1.add("Java");
+        options1.add("Python");
+        options1.add("C++");
+        options1.add("JavaScript");
+        quiz.addQuestion(new Question("Which language is known as the 'write once, run anywhere' language?", options1, 0));
+
+        List<String> options2 = new ArrayList<>();
+        options2.add("HTML");
+        options2.add("CSS");
+        options2.add("JavaScript");
+        options2.add("PHP");
+        quiz.addQuestion(new Question("Which language is primarily used for web development for client-side scripting?", options2, 2));
+
+        List<String> options3 = new ArrayList<>();
+        options3.add("Java");
+        options3.add("C");
+        options3.add("Python");
+        options3.add("Swift");
+        quiz.addQuestion(new Question("Which language is known for its use in data science and machine learning?", options3, 2));
+
+        // Start the quiz
+        quiz.startQuiz();
+    }
+}
