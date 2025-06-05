@@ -1,0 +1,156 @@
+import java.io.*;
+import java.util.*;
+
+class Expense {
+    String category;
+    double amount;
+
+    Expense(String category, double amount) {
+        this.category = category;
+        this.amount = amount;
+    }
+}
+
+public class ExpenseTracker {
+    private static final String USER_FILE = "users.txt";
+    private static final String EXPENSE_FILE = "expenses.txt";
+    private static Map<String, List<Expense>> userExpenses = new HashMap<>();
+
+    public static void main(String[] args) {
+        loadUsers();
+        loadExpenses();
+
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            System.out.println("1. Register");
+            System.out.println("2. Add Expense");
+            System.out.println("3. Summarize Expenses by Category");
+            System.out.println("4. Exit");
+            System.out.print("Choose an option: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); 
+
+            switch (choice) {
+                case 1:
+                    registerUser(scanner);
+                    break;
+                case 2:
+                    addExpense(scanner);
+                    break;
+                case 3:
+                    summarizeExpenses(scanner);
+                    break;
+                case 4:
+                    saveExpenses();
+                    System.out.println("Goodbye!");
+                    return;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+
+    private static void registerUser(Scanner scanner) {
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+        File file = new File(USER_FILE);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+            writer.write(username);
+            writer.newLine();
+            userExpenses.putIfAbsent(username, new ArrayList<>());
+            System.out.println("User registered successfully.");
+        } catch (IOException e) {
+            System.out.println("Error registering user: " + e.getMessage());
+        }
+    }
+
+    private static void addExpense(Scanner scanner) {
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+        if (!userExpenses.containsKey(username)) {
+            System.out.println("User not found.");
+            return;
+        }
+
+        System.out.print("Enter category: ");
+        String category = scanner.nextLine();
+        System.out.print("Enter amount: ");
+        double amount = scanner.nextDouble();
+        scanner.nextLine(); // Consume newline
+
+        Expense expense = new Expense(category, amount);
+        userExpenses.get(username).add(expense);
+        System.out.println("Expense added successfully.");
+    }
+
+    private static void summarizeExpenses(Scanner scanner) {
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+        if (!userExpenses.containsKey(username)) {
+            System.out.println("User not found.");
+            return;
+        }
+
+        Map<String, Double> categorySums = new HashMap<>();
+        for (Expense expense : userExpenses.get(username)) {
+            categorySums.put(expense.category, categorySums.getOrDefault(expense.category, 0.0) + expense.amount);
+        }
+
+        System.out.println("Category-wise summation:");
+        for (Map.Entry<String, Double> entry : categorySums.entrySet()) {
+            System.out.println("Category: " + entry.getKey() + ", Total Amount: " + entry.getValue());
+        }
+    }
+
+    private static void loadUsers() {
+        File file = new File(USER_FILE);
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String username;
+                while ((username = reader.readLine()) != null) {
+                    userExpenses.putIfAbsent(username, new ArrayList<>());
+                }
+            } catch (IOException e) {
+                System.out.println("Error loading users: " + e.getMessage());
+            }
+        }
+    }
+
+    private static void loadExpenses() {
+        File file = new File(EXPENSE_FILE);
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split(",");
+                    if (parts.length == 3) {
+                        String username = parts[0];
+                        String category = parts[1];
+                        double amount = Double.parseDouble(parts[2]);
+
+                        userExpenses.putIfAbsent(username, new ArrayList<>());
+                        userExpenses.get(username).add(new Expense(category, amount));
+                    }
+                }
+            } catch (IOException e) {
+                System.out.println("Error loading expenses: " + e.getMessage());
+            }
+        }
+    }
+
+    private static void saveExpenses() {
+        File file = new File(EXPENSE_FILE);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (Map.Entry<String, List<Expense>> entry : userExpenses.entrySet()) {
+                String username = entry.getKey();
+                for (Expense expense : entry.getValue()) {
+                    writer.write(username + "," + expense.category + "," + expense.amount);
+                    writer.newLine();
+                }
+            }
+        } 
+        catch (IOException e) {
+            System.out.println("Error saving expenses: " + e.getMessage());
+        }
+    }
+}
