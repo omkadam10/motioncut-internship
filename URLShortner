@@ -1,0 +1,92 @@
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+public class URLShortener {
+
+    
+    private static final String BASE62 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final int SHORT_URL_LENGTH = 6; 
+    private Map<String, String> urlMap; 
+    private Map<String, String> reverseUrlMap;
+
+    public URLShortener() {
+        urlMap = new HashMap<>();
+        reverseUrlMap = new HashMap<>();
+    }
+
+    
+    public String shortenUrl(String longUrl) {
+        if (reverseUrlMap.containsKey(longUrl)) {
+            return reverseUrlMap.get(longUrl); 
+        }
+
+        String shortUrl = generateShortUrl(longUrl);
+        urlMap.put(shortUrl, longUrl);
+        reverseUrlMap.put(longUrl, shortUrl);
+        return shortUrl;
+    }
+
+    
+    public String expandUrl(String shortUrl) {
+        return urlMap.get(shortUrl); 
+    }
+
+    
+    private String generateShortUrl(String longUrl) {
+        int hashCode = longUrl.hashCode();
+        StringBuilder shortUrl = new StringBuilder(SHORT_URL_LENGTH);
+
+        for (int i = 0; i < SHORT_URL_LENGTH; i++) {
+            shortUrl.append(BASE62.charAt(Math.abs(hashCode) % BASE62.length()));
+            hashCode /= BASE62.length();
+        }
+
+        return shortUrl.toString();
+    }
+
+    public static void main(String[] args) {
+        URLShortener urlShortener = new URLShortener();
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("URL Shortener CLI");
+            System.out.println("1. Shorten URL");
+            System.out.println("2. Expand URL");
+            System.out.println("3. Exit");
+            System.out.print("Select an option: ");
+
+            int option = scanner.nextInt();
+            scanner.nextLine(); 
+
+            switch (option) {
+                case 1:
+                    System.out.print("Enter long URL: ");
+                    String longUrl = scanner.nextLine();
+                    String shortUrl = urlShortener.shortenUrl(longUrl);
+                    System.out.println("Shortened URL: " + shortUrl);
+                    break;
+                case 2:
+                    System.out.print("Enter short URL: ");
+                    String inputShortUrl = scanner.nextLine();
+                    String expandedUrl = urlShortener.expandUrl(inputShortUrl);
+                    if (expandedUrl != null) {
+                        System.out.println("Expanded URL: " + expandedUrl);
+                    }
+                     else 
+                     {
+                        System.out.println("Short URL does not exist.");
+                    }
+                    break;
+                case 3:
+                    System.out.println("Exiting...");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+                    break;
+            }
+        }
+    }
+}
+    
